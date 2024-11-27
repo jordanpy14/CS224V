@@ -1,5 +1,6 @@
 import os
 import re
+from datasets import Dataset, DatasetDict
 
 # Directory containing the data
 folder = 'reddit_data_unfiltered'
@@ -16,19 +17,33 @@ def clean_text(text):
     text = text.replace('*', '')
     return text
 
-# Process each file in the directory
-for filename in os.listdir(folder):
-    file_path = os.path.join(folder, filename)
-    if os.path.isfile(file_path) and filename.startswith('reddit_'):
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-        
-        # Clean the content
-        cleaned_content = clean_text(content)
-        
-        new_file_path = os.path.join(new_folder, filename)
-        # Write the cleaned content back to the file
-        with open(new_file_path, 'w', encoding='utf-8') as file:
-            file.write(cleaned_content)
+def clean():
+    data = []  # List to store cleaned data
+    # Process each file in the directory
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        if os.path.isfile(file_path) and filename.startswith('reddit_'):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            # Clean the content
+            cleaned_content = clean_text(content)
+            
+            # Append cleaned data to list
+            data.append({'text': cleaned_content})
 
-        print(f'Processed and cleaned {filename}')
+    return data
+
+if __name__ == '__main__':
+    cleaned_data = clean()
+    # Convert list of dictionaries to a Hugging Face dataset
+    dataset = Dataset.from_dict({'text': [entry['text'] for entry in cleaned_data]})
+    # Wrap the dataset in a DatasetDict under the 'train' key
+    dataset_dict = DatasetDict({
+        'train': dataset
+    })
+    # Save the dataset to disk
+    dataset_dict.save_to_disk('reddit_dataset')
+    # Example of how to access the 10th entry of the 'train' split
+    print(dataset_dict['train'][10])
+    print("Dataset saved successfully.")
