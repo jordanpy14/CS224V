@@ -2,19 +2,25 @@ import praw
 from tqdm import tqdm
 import os
 
-# Set up Reddit client
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Set up Reddit client using environment variables
 reddit = praw.Reddit(
-    client_id='6YPbIjiwsl0PVtSi2B3qWw',
-    client_secret='D2RTWe2n1RLmFM6vw8uWB44n2gCJQQ',
+    client_id=os.getenv('CLIENT_ID'),
+    client_secret=os.getenv('CLIENT_SECRET'),
     user_agent='ezLEGAL by /u/Gullible-Beautiful44',
-    username='Gullible-Beautiful44',
-    password='Jordanapy14'
+    username=os.getenv('REDDIT_USER'),
+    password=os.getenv('REDDIT_PASSWORD')
 )
 
 # List of subreddits to scrape
 subreddits = ['es', 'argentina', 'mexico', 'spain', 'latinoamerica', 'Chile', 'vzla', 'PERU', 'Colombia', 'AskLatinAmerica']
 
-folder = 'reddit_data_unfiltered'
+# folder = 'reddit_data_unfiltered'
+folder = 'test_data'
 os.makedirs(folder, exist_ok=True) 
 # Loop through each subreddit and scrape posts
 for sub in subreddits:
