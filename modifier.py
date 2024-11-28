@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 from datasets import Dataset, DatasetDict
 
@@ -17,9 +18,18 @@ def clean_text(text):
     text = text.replace('*', '')
     return text
 
+
+def clean_and_split_text(text):
+    # Split the text into lines
+    lines = text.split('\n')
+    # Remove any leading/trailing whitespace from each line
+    cleaned_lines = [line.strip() for line in lines if line.strip()]
+    return cleaned_lines
+
 def clean():
     data = []  # List to store cleaned data
     # Process each file in the directory
+    data_array = []
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         if os.path.isfile(file_path) and filename.startswith('reddit_'):
@@ -31,11 +41,13 @@ def clean():
             
             # Append cleaned data to list
             data.append({'text': cleaned_content})
+            data_array.extend(clean_and_split_text(cleaned_content))
 
-    return data
+    return data, data_array
+
 
 if __name__ == '__main__':
-    cleaned_data = clean()
+    cleaned_data, data_array = clean()
     # Convert list of dictionaries to a Hugging Face dataset
     dataset = Dataset.from_dict({'text': [entry['text'] for entry in cleaned_data]})
     # Wrap the dataset in a DatasetDict under the 'train' key
@@ -44,6 +56,7 @@ if __name__ == '__main__':
     })
     # Save the dataset to disk
     dataset_dict.save_to_disk('reddit_dataset')
+    pickle.dump(data_array, open("data_array.pkl", "wb"))
     # Example of how to access the 10th entry of the 'train' split
-    print(dataset_dict['train'][10])
+    # print(dataset_dict['train'][10])
     print("Dataset saved successfully.")
